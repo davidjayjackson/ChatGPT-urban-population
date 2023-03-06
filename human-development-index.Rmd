@@ -1,0 +1,99 @@
+---
+title: "Human Development Index"
+author: "David Jackson"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(scales)
+```
+
+## Human Development Index
+
+```{r}
+human <- read_csv("./human-development-index.csv") %>%
+  clean_names()
+```
+```{r}
+summary(human$human_development_index)
+```
+```{r}
+
+
+# Select countries to visualize
+countries <- c("Norway", "United States", "India", "China")
+
+# Filter data for selected countries
+hdi_countries <- human %>%
+  filter(entity %in% countries)
+
+# Create line plot
+ggplot(hdi_countries, aes(x = year, y = human_development_index, color = entity)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(min(human$year), max(human$year), by = 10)) +
+  labs(title = "Changes in HDI over Time", x = "Year", y = "HDI Score", color = "Country") +
+  theme_bw()
+```
+#### 2.	Compare HDI scores across countries: 
+
+Create a bar chart or box plot that shows the distribution of HDI scores across countries in a selected year. This can help you compare the levels of human development across different countries and regions.
+
+```{r}
+
+# Select year for comparison
+Year <- 2019
+
+# Filter data for selected year
+hdi_year <- human %>%
+  filter(Year == year)
+
+# Create box plot
+ggplot(hdi_year, aes(x = entity, y = human_development_index)) +
+  geom_boxplot() +
+  coord_flip() +
+  labs(title = paste("Distribution of HDI Scores Across Countries in", Year),
+       x = "Country", y = "HDI Score") +
+  theme_bw()
+
+```
+```{r}
+ggplot(hdi_year, aes(x = entity, y = human_development_index)) +
+  geom_boxplot() + coord_flip()
+```
+
+Here's some R code that you can use to create a ranking plot and table to analyze trends in HDI rankings over time:
+
+```{r}
+
+# Pivot data to create ranking table
+ranking_table <- human %>%
+  select(entity, year, human_development_index) %>%
+  pivot_wider(names_from = year, values_from = human_development_index) %>%
+  mutate(rank_1990 = rank(`1990`, ties.method = "min"),
+         rank_2000 = rank(`2000`, ties.method = "min"),
+         rank_2010 = rank(`2010`, ties.method = "min"),
+         rank_2020 = rank(`2020`, ties.method = "min"))
+```
+```{r}
+# Create ranking plot
+ggplot(ranking_table, aes(rank_1990, rank_2020, color = entity)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  scale_x_reverse() +
+  scale_y_reverse() +
+  theme_minimal() +
+  labs(title = "HDI Ranking Changes from 1990 to 2020",
+       x = "Ranking in 1990",
+       y = "Ranking in 2020",
+       color = "Country")
+
+# View ranking table
+ranking_table
+
+```
+
+
